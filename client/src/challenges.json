@@ -1,0 +1,6 @@
+[
+  { "id": "read", "name": "Read a chapter", "minutes": 25, "points": 3 },
+  { "id": "notes", "name": "Review your notes", "minutes": 20, "points": 3 },
+  { "id": "practice", "name": "Practice problems", "minutes": 30, "points": 4 },
+  { "id": "focus", "name": "Focused study session", "minutes": 45, "points": 4 }
+]
