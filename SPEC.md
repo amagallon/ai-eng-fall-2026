@@ -7,12 +7,13 @@ Study timers are boring, so students avoid using them. This app makes study sess
 Students who struggle to start or stick with study sessions.
 
 ## How it works
-1. The user starts a study session by picking how long they will study.
-2. The user bets fake points on finishing and picks a risk tier (Safe, Bold, or Reckless). Higher tiers pay more but make quitting harder. The payout multiplier and potential win are always shown before the session starts.
-3. A timer runs while they study.
-4. The user can end the session early, but the app makes quitting harder (for example, a Stop button that dodges the cursor). Quitting forfeits the bet.
-5. Finishing a session pays out the bet times the tier multiplier. Consecutive finished sessions build a streak bonus, and a quit resets it.
-6. The app remembers past sessions and shows them back to the user.
+1. The user commits to a number of study minutes and bets fake points on finishing.
+2. The user picks a risk tier (Safe, Bold, or Reckless). The tier decides how wild the wheel is and how much a win pays. All wheel segments and payouts are shown before spinning.
+3. The user spins a wheel. It multiplies their committed minutes to set the actual session length.
+4. A timer runs for the actual session length.
+5. The user can end the session early, but the app makes quitting harder (for example, a Stop button that dodges the cursor). Quitting forfeits the bet.
+6. Finishing pays the bet times the tier's payout multiplier.
+7. The app remembers past sessions and shows them back to the user.
 
 ## Inputs and outputs
 - Inputs: chosen study time, bet amount, risk tier, button clicks.
@@ -20,11 +21,13 @@ Students who struggle to start or stick with study sessions.
 
 ## Points and risk rules
 - Points are fake and have no real-world value.
-- Players start with 100 points.
-- Bet range: 10 to 50 points.
-- Tiers: Safe 1.2x, Bold 2x, Reckless 3x.
-- Odds and payouts are always visible before a session starts.
-- A player at 0 points gets a free bailout session so they are never locked out.
+- Players start with 100 points. Bet range: 10 to 50.
+- Committed minutes: 10 to 60. Actual session is committed minutes times the wheel multiplier, rounded, minimum 1, maximum 90.
+- Safe: wheel 0.8x, 1x, 1x, 1.2x, payout 1.2x.
+- Bold: wheel 0.5x, 1x, 1.5x, 2x, payout 2x.
+- Reckless: wheel 0.25x, 0.5x, 1x, 2x, 3x, payout 3x.
+- Every wheel segment is equally likely, and all segments are visible before the spin.
+- A player at 0 points gets a free bailout session (no stake).
 
 ## Out of scope
 - Real money or real gambling of any kind
