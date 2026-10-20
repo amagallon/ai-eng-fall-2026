@@ -1,19 +1,48 @@
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
-import About from './pages/About'
+import { useState } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
+import WheelPage from './pages/WheelPage'
 
 function App() {
+  const [points, setPoints] = useState(100)
+  const [minutes, setMinutes] = useState(25)
+  const [bet, setBet] = useState(10)
+  const [tier, setTier] = useState('safe')
+  const [hasCommitted, setHasCommitted] = useState(false)
+
   return (
     <BrowserRouter>
-      <nav aria-label="Main navigation">
-        <Link to="/">Home</Link>
-        {' | '}
-        <Link to="/about">About</Link>
-      </nav>
-
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
+        <Route
+          path="/"
+          element={
+            hasCommitted ? (
+              <Navigate to="/wheel" replace />
+            ) : (
+              <Home
+                points={points}
+                setPoints={setPoints}
+                minutes={minutes}
+                setMinutes={setMinutes}
+                bet={bet}
+                setBet={setBet}
+                tier={tier}
+                setTier={setTier}
+                setHasCommitted={setHasCommitted}
+              />
+            )
+          }
+        />
+        <Route
+          path="/wheel"
+          element={
+            hasCommitted ? (
+              <WheelPage minutes={minutes} bet={bet} tier={tier} />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
       </Routes>
     </BrowserRouter>
   )

@@ -1,15 +1,13 @@
-const riskTiers = [
-  { id: 'safe', label: 'Safe', multiplier: 1.2 },
-  { id: 'bold', label: 'Bold', multiplier: 2 },
-  { id: 'reckless', label: 'Reckless', multiplier: 3 },
-]
+import { RISK_TIERS } from '../constants'
 
 function RiskTierPicker({ selectedTier, stake, onSelectTier }) {
   return (
     <fieldset>
       <legend>Risk tier</legend>
-      {riskTiers.map((riskTier) => {
-        const potentialPayout = Number((stake * riskTier.multiplier).toFixed(2))
+      {Object.values(RISK_TIERS).map((riskTier) => {
+        const potentialPayout = Number(
+          (stake * riskTier.payoutMultiplier).toFixed(2),
+        )
 
         return (
           <label key={riskTier.id}>
@@ -20,8 +18,9 @@ function RiskTierPicker({ selectedTier, stake, onSelectTier }) {
               checked={selectedTier === riskTier.id}
               onChange={() => onSelectTier(riskTier.id)}
             />
-            {riskTier.label} — {riskTier.multiplier}x · Potential payout:{' '}
-            {potentialPayout} points
+            {riskTier.label} — wheel: {riskTier.wheelSegments.join('x, ')}x ·
+            Payout: {riskTier.payoutMultiplier}x · Potential win: {potentialPayout}{' '}
+            points
           </label>
         )
       })}
