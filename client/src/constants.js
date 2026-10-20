@@ -1,4 +1,5 @@
 export const WHEEL_SPIN_DURATION_MS = 6000
+export const SESSION_TIMER_SPEED_MULTIPLIER = 1
 
 export const RISK_TIERS = {
   safe: {

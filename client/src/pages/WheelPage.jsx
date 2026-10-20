@@ -2,14 +2,20 @@ import { useState } from 'react'
 import Wheel from '../components/Wheel'
 import { RISK_TIERS, WHEEL_SPIN_DURATION_MS } from '../constants'
 
-function WheelPage({ minutes, bet, tier }) {
+function WheelPage({
+  minutes,
+  bet,
+  tier,
+  activeSession,
+  onWheelResult,
+  onStartSession,
+}) {
   const [isSpinning, setIsSpinning] = useState(false)
   const [spinCount, setSpinCount] = useState(0)
   const [wheelTargetIndex, setWheelTargetIndex] = useState(0)
-  const [result, setResult] = useState(null)
 
   function handleSpin(multiplier, targetIndex) {
-    if (isSpinning || result) {
+    if (isSpinning || activeSession) {
       return
     }
 
@@ -23,9 +29,13 @@ function WheelPage({ minutes, bet, tier }) {
         Math.max(1, Math.round(minutes * multiplier)),
       )
 
-      setResult({ multiplier, actualMinutes })
+      onWheelResult({ multiplier, actualMinutes })
       setIsSpinning(false)
     }, WHEEL_SPIN_DURATION_MS)
+  }
+
+  function handleStartSession() {
+    onStartSession()
   }
 
   return (
@@ -35,21 +45,24 @@ function WheelPage({ minutes, bet, tier }) {
         spinCount={spinCount}
         wheelTargetIndex={wheelTargetIndex}
         onSpin={handleSpin}
-        disabled={isSpinning || Boolean(result)}
+        disabled={isSpinning || Boolean(activeSession)}
       />
       {isSpinning && <p role="status">The wheel is spinning…</p>}
-      {result && (
+      {activeSession && (
         <section aria-live="polite">
-          <h1>The wheel landed on {result.multiplier}x!</h1>
+          <h1>The wheel landed on {activeSession.wheelMultiplier}x!</h1>
           <p>
-            Your {minutes}-minute commitment becomes a {result.actualMinutes}-minute
-            study session.
+            Your {activeSession.committedMinutes}-minute commitment becomes a{' '}
+            {activeSession.actualMinutes}-minute study session.
           </p>
           <p>
             {bet === 0
               ? 'Free bailout session — no points at stake.'
               : `${bet} points at stake · ${RISK_TIERS[tier].label} tier`}
           </p>
+          <button type="button" onClick={handleStartSession}>
+            Start session
+          </button>
         </section>
       )}
     </main>
