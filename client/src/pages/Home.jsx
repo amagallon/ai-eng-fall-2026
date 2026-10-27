@@ -31,12 +31,19 @@ function Home({
   }
 
   return (
-    <main>
-      <h1>Study session setup</h1>
-      <p>Points balance: {points}</p>
+    <main className="page-shell setup-page">
+      <header className="page-heading">
+        <p className="eyebrow">Build your next session</p>
+        <h1>Study session setup</h1>
+        <p>Choose your commitment and risk before the wheel sets your session.</p>
+      </header>
 
-      <form onSubmit={goToWheel}>
-        <div>
+      <p className="setup-balance">
+        Available to play <strong>{points} pts</strong>
+      </p>
+
+      <form className="panel setup-panel setup-form" onSubmit={goToWheel}>
+        <div className="form-field">
           <label htmlFor="minutes">Committed study time (minutes)</label>
           <input
             id="minutes"
@@ -52,10 +59,12 @@ function Home({
           />
         </div>
         {invalidMinutes && (
-          <p role="alert">Choose a committed study time from 10 to 60 minutes.</p>
+          <p className="form-error" role="alert">
+            Choose a committed study time from 10 to 60 minutes.
+          </p>
         )}
 
-        <div>
+        <div className="form-field">
           <label htmlFor="bet">Bet amount: {bet} points</label>
           <input
             id="bet"
@@ -70,7 +79,9 @@ function Home({
         </div>
 
         {isBailout && (
-          <p>You have 0 points, so this is a free bailout session with no stake.</p>
+          <p className="notice">
+            You have 0 points, so this is a free bailout session with no stake.
+          </p>
         )}
 
         <RiskTierPicker
@@ -80,10 +91,16 @@ function Home({
         />
 
         {cannotAffordBet && (
-          <p role="alert">Your bet is higher than your points balance.</p>
+          <p className="form-error" role="alert">
+            Your bet is higher than your points balance.
+          </p>
         )}
 
-        <button type="submit" disabled={cannotAffordBet || invalidMinutes}>
+        <button
+          className="button-primary"
+          type="submit"
+          disabled={cannotAffordBet || invalidMinutes}
+        >
           Go to the wheel
         </button>
       </form>

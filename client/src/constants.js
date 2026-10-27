@@ -7,17 +7,38 @@ export const RISK_TIERS = {
     label: 'Safe',
     payoutMultiplier: 1.2,
     wheelSegments: [0.8, 1, 1, 1.2],
+    wheelWeights: [1, 2, 2, 3],
   },
   bold: {
     id: 'bold',
     label: 'Bold',
     payoutMultiplier: 2,
     wheelSegments: [0.5, 1, 1.5, 2],
+    wheelWeights: [1, 2, 3, 4],
   },
   reckless: {
     id: 'reckless',
     label: 'Reckless',
     payoutMultiplier: 3,
     wheelSegments: [0.25, 0.5, 1, 2, 3],
+    wheelWeights: [1, 2, 3, 4, 5],
+  },
+}
+
+export const DODGE_SETTINGS = {
+  safe: {
+    speedPxPerFrame: 2,
+    triggerRadiusPx: 90,
+    jumpDistancePx: 150,
+  },
+  bold: {
+    speedPxPerFrame: 5,
+    triggerRadiusPx: 125,
+    jumpDistancePx: 220,
+  },
+  reckless: {
+    speedPxPerFrame: 9,
+    triggerRadiusPx: 160,
+    jumpDistancePx: 300,
   },
 }

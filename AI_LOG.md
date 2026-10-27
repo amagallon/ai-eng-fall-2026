@@ -14,7 +14,7 @@ Tool: GitHub Copilot Chat in Codespaces. Each entry says what I asked, what I go
 ## M3: Router, props, state
 - Asked for React Router with Home and About pages. Copilot said it was "already implemented," so I checked the files myself. Nav works with no page reload.
 - Asked for a `StatCard` rendered three times with different props (2 files changed). Found where props are passed and received.
-- Asked for a useState Points counter with Win and Lose buttons. Clicked both and watched the number change. [CONFIRM]
+- Asked for a useState Points counter with Win and Lose buttons. Clicked both and watched the number change. 
 
 ## M4: List from a spec
 - Asked Copilot to explain `.map()`, lifting state, and not mutating state.

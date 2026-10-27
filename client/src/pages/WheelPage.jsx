@@ -39,7 +39,12 @@ function WheelPage({
   }
 
   return (
-    <main>
+    <main className="page-shell wheel-page">
+      <header className="page-heading">
+        <p className="eyebrow">Your session multiplier</p>
+        <h1>Let the wheel decide</h1>
+        <p>Every segment is shown. Higher risks favor longer sessions.</p>
+      </header>
       <Wheel
         tier={tier}
         spinCount={spinCount}
@@ -47,9 +52,11 @@ function WheelPage({
         onSpin={handleSpin}
         disabled={isSpinning || Boolean(activeSession)}
       />
-      {isSpinning && <p role="status">The wheel is spinning…</p>}
+      {isSpinning && (
+        <p className="spin-status" role="status">The wheel is spinning…</p>
+      )}
       {activeSession && (
-        <section aria-live="polite">
+        <section className="panel result-panel" aria-live="polite">
           <h1>The wheel landed on {activeSession.wheelMultiplier}x!</h1>
           <p>
             Your {activeSession.committedMinutes}-minute commitment becomes a{' '}
@@ -60,7 +67,11 @@ function WheelPage({
               ? 'Free bailout session — no points at stake.'
               : `${bet} points at stake · ${RISK_TIERS[tier].label} tier`}
           </p>
-          <button type="button" onClick={handleStartSession}>
+          <button
+            className="button-primary"
+            type="button"
+            onClick={handleStartSession}
+          >
             Start session
           </button>
         </section>

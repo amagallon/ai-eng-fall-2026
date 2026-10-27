@@ -36,7 +36,7 @@ Students who struggle to start or stick with study sessions.
 - Later ideas, not part of the first build: reward shop, bonus roll, temptation popup, daily bet cap
 
 ## Acceptance criteria
-1. I can start a study session.
+1. Start a study session.
 2. A timer runs during the session.
 3. I can pick a bet and a risk tier, and the potential win is shown before I start.
 4. When a session ends, the app shows a result and updates my points.
