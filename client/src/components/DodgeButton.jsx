@@ -103,13 +103,19 @@ function DodgeButton({ areaRef, cursorPositionRef, tier, isActive, onClick }) {
         }
 
         if (cursor) {
+          const cursorIsOnButton =
+            cursor.x >= current.left &&
+            cursor.x <= current.left + button.offsetWidth &&
+            cursor.y >= current.top &&
+            cursor.y <= current.top + button.offsetHeight
+
           const centerX = current.left + button.offsetWidth / 2
           const centerY = current.top + button.offsetHeight / 2
           const deltaX = centerX - cursor.x
           const deltaY = centerY - cursor.y
           const distance = Math.hypot(deltaX, deltaY)
 
-          if (distance <= settings.triggerRadiusPx) {
+          if (!cursorIsOnButton && distance <= settings.triggerRadiusPx) {
             const angle = distance === 0 ? Math.random() * Math.PI * 2 : null
             const directionX = distance === 0 ? Math.cos(angle) : deltaX / distance
             const directionY = distance === 0 ? Math.sin(angle) : deltaY / distance

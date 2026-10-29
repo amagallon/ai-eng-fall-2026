@@ -5,7 +5,7 @@ const app = express()
 
 app.use(express.json())
 
-app.get('/', (request, response) => {
+app.get(['/', '/api'], (request, response) => {
   response.type('html').send(`<!doctype html>
 <html lang="en">
   <head>

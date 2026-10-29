@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import DodgeButton from '../components/DodgeButton'
 import {
   RISK_TIERS,
@@ -12,13 +12,80 @@ function formatTime(totalSeconds) {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 
-function SessionPage({ activeSession, points, onFinish, onNewSession }) {
+function SessionPage({
+  activeSession,
+  onFinish,
+  onSessionSaved,
+  onSessionSaveFailed,
+  onNewSession,
+}) {
   const [remainingSeconds, setRemainingSeconds] = useState(
     activeSession.actualMinutes * 60,
   )
+  const [saveStatus, setSaveStatus] = useState('idle')
+  const [saveError, setSaveError] = useState('')
+  const [isFinishing, setIsFinishing] = useState(false)
   const sessionAreaRef = useRef(null)
   const cursorPositionRef = useRef(null)
+  const finishRequestRef = useRef(false)
   const isActive = activeSession.status === 'active'
+
+  const finishSession = useCallback(async (outcome) => {
+    if (!isActive || finishRequestRef.current) {
+      return
+    }
+
+    finishRequestRef.current = true
+    setIsFinishing(true)
+    const payout =
+      outcome === 'won'
+        ? Math.round(
+            activeSession.bet *
+              RISK_TIERS[activeSession.tier].payoutMultiplier,
+          )
+        : 0
+    const pointsChange =
+      outcome === 'won' ? payout - activeSession.bet : -activeSession.bet
+
+    onFinish(outcome, payout)
+    setSaveStatus('saving')
+
+    try {
+      const response = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          started_at: activeSession.startedAt,
+          minutes_planned: activeSession.committedMinutes,
+          actual_minutes: activeSession.actualMinutes,
+          bet_amount: activeSession.bet,
+          tier: RISK_TIERS[activeSession.tier].label,
+          result: outcome,
+          points_change: pointsChange,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('The server could not save this session.')
+      }
+
+      const savedSession = await response.json()
+      onSessionSaved(savedSession)
+      setSaveStatus('saved')
+    } catch {
+      onSessionSaveFailed()
+      setSaveError(
+        'Your session ended, but we couldn’t save it to history. Please check your connection and try again later.',
+      )
+      setSaveStatus('error')
+    }
+  }, [
+    activeSession,
+    isActive,
+    onFinish,
+    onSessionSaved,
+    onSessionSaveFailed,
+  ])
 
   useEffect(() => {
     if (!isActive) {
@@ -33,10 +100,13 @@ function SessionPage({ activeSession, points, onFinish, onNewSession }) {
   }, [isActive])
 
   useEffect(() => {
-    if (isActive && remainingSeconds === 0) {
-      onFinish('won')
+    if (!isActive || remainingSeconds !== 0) {
+      return undefined
     }
-  }, [isActive, remainingSeconds, onFinish])
+
+    const timeoutId = window.setTimeout(() => finishSession('won'), 0)
+    return () => window.clearTimeout(timeoutId)
+  }, [isActive, remainingSeconds, finishSession])
 
   function updateCursorPosition(clientX, clientY) {
     const area = sessionAreaRef.current
@@ -70,11 +140,22 @@ function SessionPage({ activeSession, points, onFinish, onNewSession }) {
           </h1>
           {activeSession.status === 'won' ? (
             <p>
-              You won {activeSession.pointsWon} points! Your balance is now {points}.
+              You won {activeSession.pointsWon} points!
             </p>
           ) : (
             <p>
               You stopped early. Your {activeSession.bet}-point bet was forfeited.
+            </p>
+          )}
+          {saveStatus === 'saving' && (
+            <p role="status">Saving this session to your history…</p>
+          )}
+          {saveStatus === 'saved' && (
+            <p role="status">This session was saved to your history.</p>
+          )}
+          {saveError && (
+            <p className="form-error" role="alert">
+              {saveError}
             </p>
           )}
           <button className="button-primary" type="button" onClick={onNewSession}>
@@ -123,10 +204,13 @@ function SessionPage({ activeSession, points, onFinish, onNewSession }) {
             areaRef={sessionAreaRef}
             cursorPositionRef={cursorPositionRef}
             tier={activeSession.tier}
-            isActive={isActive}
-            onClick={() => onFinish('lost')}
+            isActive={isActive && !isFinishing}
+            onClick={() => finishSession('lost')}
           />
         </section>
+        {saveStatus === 'saving' && (
+          <p role="status">Saving your completed session…</p>
+        )}
       </section>
     </main>
   )
