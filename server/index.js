@@ -117,6 +117,12 @@ app.get('/api/sessions', (request, response) => {
   response.json(sessions)
 })
 
+app.delete('/api/sessions', (request, response) => {
+  const result = database.prepare('DELETE FROM sessions').run()
+
+  response.json({ deleted: result.changes })
+})
+
 app.post('/api/sessions', (request, response) => {
   const {
     started_at: startedAt,

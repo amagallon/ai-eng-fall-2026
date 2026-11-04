@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 async function getSessions(signal) {
   const response = await fetch('/api/sessions', { signal })
@@ -19,10 +19,15 @@ function formatSessionDate(value) {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
 }
 
-function HistoryPage() {
+function HistoryPage({ onSessionsReset }) {
   const [sessions, setSessions] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false)
+  const [isResetting, setIsResetting] = useState(false)
+  const [resetError, setResetError] = useState('')
+  const cancelButtonRef = useRef(null)
+  const resetButtonRef = useRef(null)
 
   const loadSessions = useCallback(async (signal) => {
     try {
@@ -56,12 +61,79 @@ function HistoryPage() {
     return () => controller.abort()
   }, [])
 
+  useEffect(() => {
+    if (!isResetModalOpen) {
+      return undefined
+    }
+
+    cancelButtonRef.current?.focus()
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setIsResetModalOpen(false)
+        setResetError('')
+        resetButtonRef.current?.focus()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isResetModalOpen])
+
+  function closeResetModal() {
+    setIsResetModalOpen(false)
+    setResetError('')
+    resetButtonRef.current?.focus()
+  }
+
+  async function resetSessions() {
+    setIsResetting(true)
+    setResetError('')
+
+    try {
+      const response = await fetch('/api/sessions', { method: 'DELETE' })
+      if (!response.ok) {
+        throw new Error('The server could not reset your saved sessions.')
+      }
+
+      const result = await response.json()
+      if (!Number.isInteger(result.deleted)) {
+        throw new Error('The server returned an invalid reset response.')
+      }
+
+      onSessionsReset([])
+      setSessions([])
+      const refreshedSessions = await getSessions()
+      setSessions(refreshedSessions)
+      onSessionsReset(refreshedSessions)
+      setIsResetModalOpen(false)
+      resetButtonRef.current?.focus()
+    } catch {
+      setResetError(
+        'We couldn’t reset your points and history. Please check your connection and try again.',
+      )
+    } finally {
+      setIsResetting(false)
+    }
+  }
+
   return (
     <main className="page-shell history-page">
       <header className="page-heading">
         <p className="eyebrow">Your progress</p>
         <h1>Session history</h1>
         <p>Review your completed study sessions and point changes.</p>
+        <button
+          className="button-secondary history-reset-button"
+          type="button"
+          ref={resetButtonRef}
+          onClick={() => {
+            setResetError('')
+            setIsResetModalOpen(true)
+          }}
+        >
+          Reset points and history
+        </button>
       </header>
 
       {isLoading && (
@@ -138,6 +210,53 @@ function HistoryPage() {
             </li>
           ))}
         </ol>
+      )}
+
+      {isResetModalOpen && (
+        <div
+          className="reset-modal-backdrop"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              closeResetModal()
+            }
+          }}
+        >
+          <section
+            className="panel reset-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-modal-title"
+            aria-describedby="reset-modal-description"
+          >
+            <h2 id="reset-modal-title">Reset points and history?</h2>
+            <p id="reset-modal-description">
+              This deletes all saved sessions and resets your points to 100.
+            </p>
+            {resetError && (
+              <p className="form-error reset-modal-error" role="alert">
+                {resetError}
+              </p>
+            )}
+            <div className="reset-modal-actions">
+              <button
+                className="button-secondary"
+                type="button"
+                ref={cancelButtonRef}
+                onClick={closeResetModal}
+              >
+                Cancel
+              </button>
+              <button
+                className="button-primary"
+                type="button"
+                onClick={resetSessions}
+                disabled={isResetting}
+              >
+                {isResetting ? 'Resetting…' : 'Yes, reset'}
+              </button>
+            </div>
+          </section>
+        </div>
       )}
     </main>
   )

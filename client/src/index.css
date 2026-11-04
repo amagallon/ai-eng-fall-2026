@@ -584,20 +584,9 @@ button:disabled {
   line-height: 1;
 }
 
-.session-arena {
-  position: relative;
-  width: 100%;
-  min-height: 320px;
-  overflow: hidden;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-md);
-  background:
-    radial-gradient(ellipse at center, rgb(131 224 174 / 5%), transparent 68%),
-    #101614;
-}
-
 .dodge-button {
-  position: absolute;
+  position: fixed;
+  z-index: 20;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
@@ -638,6 +627,10 @@ button:disabled {
 
 .history-page {
   max-width: 820px;
+}
+
+.history-reset-button {
+  margin-top: 20px;
 }
 
 .history-message {
@@ -729,6 +722,50 @@ button:disabled {
   color: var(--danger) !important;
 }
 
+.reset-modal-backdrop {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(3 7 6 / 72%);
+  backdrop-filter: blur(8px);
+}
+
+.reset-modal {
+  width: min(100%, 480px);
+  padding: clamp(24px, 5vw, 36px);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-raised);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
+}
+
+.reset-modal h2 {
+  margin-bottom: 12px;
+  font-size: clamp(1.35rem, 4vw, 1.7rem);
+  letter-spacing: -0.035em;
+}
+
+.reset-modal > p {
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.reset-modal .reset-modal-error {
+  margin: -8px 0 20px;
+}
+
+.reset-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.reset-modal-actions .button-primary {
+  width: auto;
+}
+
 @media (max-width: 680px) {
   .topbar {
     grid-template-columns: 1fr auto;
@@ -788,10 +825,6 @@ button:disabled {
 
   .tier-option {
     padding: 13px;
-  }
-
-  .session-arena {
-    min-height: 290px;
   }
 
   .history-details {

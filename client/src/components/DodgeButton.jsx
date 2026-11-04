@@ -1,15 +1,63 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { DODGE_SETTINGS } from '../constants'
 
-function DodgeButton({ areaRef, cursorPositionRef, tier, isActive, onClick }) {
-  const [position, setPosition] = useState({ left: 16, top: 220 })
+function DodgeButton({ tier, isActive, onClick }) {
+  const [position, setPosition] = useState({ left: 0, top: 0 })
   const positionRef = useRef(position)
   const buttonRef = useRef(null)
+  const cursorPositionRef = useRef(null)
+  const topBoundaryRef = useRef(0)
   const settings = DODGE_SETTINGS[tier]
+
+  useLayoutEffect(() => {
+    const timerPanel = document.querySelector('.timer-panel')
+    const button = buttonRef.current
+    if (!timerPanel || !button) {
+      return
+    }
+
+    const panelBounds = timerPanel.getBoundingClientRect()
+    const maxLeft = Math.max(0, window.innerWidth - button.offsetWidth)
+    const maxTop = Math.max(0, window.innerHeight - button.offsetHeight)
+    const nav = document.querySelector('.topbar')
+    const minTop = nav
+      ? Math.min(nav.getBoundingClientRect().bottom, maxTop)
+      : 0
+    const nextPosition = {
+      left: Math.min(
+        maxLeft,
+        Math.max(0, panelBounds.left + (panelBounds.width - button.offsetWidth) / 2),
+      ),
+      top: Math.min(maxTop, Math.max(minTop, panelBounds.bottom + 16)),
+    }
+
+    positionRef.current = nextPosition
+    setPosition(nextPosition)
+  }, [])
 
   useEffect(() => {
     if (!isActive) {
       return undefined
+    }
+
+    function updateCursorPosition(event) {
+      cursorPositionRef.current = { x: event.clientX, y: event.clientY }
+    }
+
+    function clearCursorPosition(event) {
+      if (!event.relatedTarget) {
+        cursorPositionRef.current = null
+      }
+    }
+
+    function updateTopBoundary() {
+      const topbar = document.querySelector('.topbar')
+      const button = buttonRef.current
+      const maxTop = button
+        ? Math.max(0, window.innerHeight - button.offsetHeight)
+        : window.innerHeight
+      const navBottom = topbar ? topbar.getBoundingClientRect().bottom : 0
+      topBoundaryRef.current = Math.min(navBottom, maxTop)
     }
 
     function moveToRandomSafePosition(maxLeft, maxTop, cursor, buttonWidth, buttonHeight) {
@@ -19,7 +67,9 @@ function DodgeButton({ areaRef, cursorPositionRef, tier, isActive, onClick }) {
       for (let attempt = 0; attempt < 100; attempt += 1) {
         const candidate = {
           left: Math.random() * maxLeft,
-          top: Math.random() * maxTop,
+          top:
+            topBoundaryRef.current +
+            Math.random() * (maxTop - topBoundaryRef.current),
         }
         const centerX = candidate.left + buttonWidth / 2
         const centerY = candidate.top + buttonHeight / 2
@@ -34,7 +84,7 @@ function DodgeButton({ areaRef, cursorPositionRef, tier, isActive, onClick }) {
       if (acceptablePositions.length === 0) {
         const step = 20
         for (let left = 0; left <= maxLeft; left += step) {
-          for (let top = 0; top <= maxTop; top += step) {
+          for (let top = topBoundaryRef.current; top <= maxTop; top += step) {
             const candidate = {
               left: Math.min(left, maxLeft),
               top: Math.min(top, maxTop),
@@ -58,8 +108,8 @@ function DodgeButton({ areaRef, cursorPositionRef, tier, isActive, onClick }) {
       }
 
       const corners = [
-        { left: 0, top: 0 },
-        { left: maxLeft, top: 0 },
+        { left: 0, top: topBoundaryRef.current },
+        { left: maxLeft, top: topBoundaryRef.current },
         { left: 0, top: maxTop },
         { left: maxLeft, top: maxTop },
       ]
@@ -79,19 +129,24 @@ function DodgeButton({ areaRef, cursorPositionRef, tier, isActive, onClick }) {
     }
 
     let frameId
+    updateTopBoundary()
+    window.addEventListener('pointermove', updateCursorPosition)
+    window.addEventListener('pointerdown', updateCursorPosition)
+    window.addEventListener('pointerleave', clearCursorPosition)
+    window.addEventListener('resize', updateTopBoundary)
 
     function animate() {
-      const area = areaRef.current
       const button = buttonRef.current
       const cursor = cursorPositionRef.current
 
-      if (area && button) {
-        const maxLeft = Math.max(0, area.clientWidth - button.offsetWidth)
-        const maxTop = Math.max(0, area.clientHeight - button.offsetHeight)
+      if (button) {
+        const maxLeft = Math.max(0, window.innerWidth - button.offsetWidth)
+        const maxTop = Math.max(0, window.innerHeight - button.offsetHeight)
+        const minTop = Math.min(topBoundaryRef.current, maxTop)
         const storedPosition = positionRef.current
         const current = {
           left: Math.min(maxLeft, Math.max(0, storedPosition.left)),
-          top: Math.min(maxTop, Math.max(0, storedPosition.top)),
+          top: Math.min(maxTop, Math.max(minTop, storedPosition.top)),
         }
 
         if (
@@ -126,7 +181,7 @@ function DodgeButton({ areaRef, cursorPositionRef, tier, isActive, onClick }) {
             if (
               nextLeft < 0 ||
               nextLeft > maxLeft ||
-              nextTop < 0 ||
+              nextTop < minTop ||
               nextTop > maxTop
             ) {
               nextPosition = moveToRandomSafePosition(
@@ -150,10 +205,15 @@ function DodgeButton({ areaRef, cursorPositionRef, tier, isActive, onClick }) {
     }
 
     frameId = window.requestAnimationFrame(animate)
-    return () => window.cancelAnimationFrame(frameId)
+    return () => {
+      window.cancelAnimationFrame(frameId)
+      window.removeEventListener('pointermove', updateCursorPosition)
+      window.removeEventListener('pointerdown', updateCursorPosition)
+      window.removeEventListener('pointerleave', clearCursorPosition)
+      window.removeEventListener('resize', updateTopBoundary)
+      cursorPositionRef.current = null
+    }
   }, [
-    areaRef,
-    cursorPositionRef,
     isActive,
     settings.jumpDistancePx,
     settings.speedPxPerFrame,

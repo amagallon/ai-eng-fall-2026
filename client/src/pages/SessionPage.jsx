@@ -25,8 +25,6 @@ function SessionPage({
   const [saveStatus, setSaveStatus] = useState('idle')
   const [saveError, setSaveError] = useState('')
   const [isFinishing, setIsFinishing] = useState(false)
-  const sessionAreaRef = useRef(null)
-  const cursorPositionRef = useRef(null)
   const finishRequestRef = useRef(false)
   const isActive = activeSession.status === 'active'
 
@@ -108,26 +106,6 @@ function SessionPage({
     return () => window.clearTimeout(timeoutId)
   }, [isActive, remainingSeconds, finishSession])
 
-  function updateCursorPosition(clientX, clientY) {
-    const area = sessionAreaRef.current
-    if (!area) {
-      return
-    }
-
-    const bounds = area.getBoundingClientRect()
-    cursorPositionRef.current = {
-      x: clientX - bounds.left,
-      y: clientY - bounds.top,
-    }
-  }
-
-  function handleAreaTouch(event) {
-    const touch = event.touches[0]
-    if (touch) {
-      updateCursorPosition(touch.clientX, touch.clientY)
-    }
-  }
-
   if (activeSession.status === 'won' || activeSession.status === 'lost') {
     return (
       <main className="page-shell result-page">
@@ -181,37 +159,15 @@ function SessionPage({
         <p className="timer-display" aria-live="polite" aria-atomic="true">
           {formatTime(remainingSeconds)}
         </p>
-        <section
-          className="session-arena"
-          ref={sessionAreaRef}
-          aria-label="Active study session"
-          onMouseMove={(event) =>
-            updateCursorPosition(event.clientX, event.clientY)
-          }
-          onMouseLeave={() => {
-            cursorPositionRef.current = null
-          }}
-          onTouchStart={handleAreaTouch}
-          onTouchMove={handleAreaTouch}
-          onTouchEnd={() => {
-            cursorPositionRef.current = null
-          }}
-          onTouchCancel={() => {
-            cursorPositionRef.current = null
-          }}
-        >
-          <DodgeButton
-            areaRef={sessionAreaRef}
-            cursorPositionRef={cursorPositionRef}
-            tier={activeSession.tier}
-            isActive={isActive && !isFinishing}
-            onClick={() => finishSession('lost')}
-          />
-        </section>
         {saveStatus === 'saving' && (
           <p role="status">Saving your completed session…</p>
         )}
       </section>
+      <DodgeButton
+        tier={activeSession.tier}
+        isActive={isActive && !isFinishing}
+        onClick={() => finishSession('lost')}
+      />
     </main>
   )
 }

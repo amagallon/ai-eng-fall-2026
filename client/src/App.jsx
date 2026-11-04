@@ -172,6 +172,13 @@ function AppRoutes() {
     setPendingBet(0)
   }, [])
 
+  const handleSessionsReset = useCallback((savedSessions) => {
+    setSessions(savedSessions)
+    setPendingBet(0)
+    setBalanceError('')
+    setIsLoadingBalance(false)
+  }, [])
+
   const startNewSession = useCallback(() => {
     sessionFinishedRef.current = false
     setHasCommitted(false)
@@ -273,7 +280,10 @@ function AppRoutes() {
             )
           }
         />
-        <Route path="/history" element={<HistoryPage />} />
+        <Route
+          path="/history"
+          element={<HistoryPage onSessionsReset={handleSessionsReset} />}
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
