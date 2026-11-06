@@ -1,11 +1,9 @@
-# Study / Signal
+# Study
 
-Study / Signal is a study timer app where you choose a study commitment, wager
+It is a study timer app where you choose a study commitment, wager
 fake points, and spin a risk-tiered wheel to set the session length. Complete
 the countdown to win points, or stop early and lose your bet. Session results
 are saved to a SQLite database and can be reviewed in the app.
-
-> **Points are fake and have no real-world value.**
 
 ## Requirements
 
